@@ -7,13 +7,7 @@
       {{ errorMessage }}
     </div>
     <div class="table-responsive">
-      <base-table
-        class="table align-items-center table-flush"
-        :class="type === 'dark' ? 'table-dark' : ''"
-        :thead-classes="type === 'dark' ? 'thead-dark' : 'thead-light'"
-        tbody-classes="list"
-        :data="items"
-      >
+      <base-table class="table align-items-center table-flush" :data="items">
         <!-- Table Head -->
         <template v-slot:columns>
           <th>#</th>
@@ -193,7 +187,7 @@ export default {
       last_name: "",
       email: "",
       currentIndex: "",
-      items: "",
+      items: [],
       page: 1,
       total_pages: "",
     };
