@@ -1,16 +1,16 @@
 <template>
   <div class="container">
-    <div>
-      <home />
+    <div class="list-page">
+      <listing />
     </div>
   </div>
 </template>
 
 <script>
-import Home from "../components/Home";
+import Listing from "../components/Listing";
 export default {
   components: {
-    Home,
+    Listing,
   },
 };
 </script>
