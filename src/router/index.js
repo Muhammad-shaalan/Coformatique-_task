@@ -15,9 +15,14 @@ const routes = [
     path: "/",
     name: "Home",
     component: Home,
-    // meta: {
-    //   hideForAuth: true,
-    // },
+  },
+  {
+    path: "/register",
+    name: "Register",
+    component: () => import("../views/Register.vue"),
+    meta: {
+      hideForAuth: true,
+    },
   },
   {
     path: "/login",

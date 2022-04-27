@@ -6,6 +6,9 @@ import axios from "axios";
 // Booststrap
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.js";
+// SweetAlert
+import VueSweetalert2 from "vue-sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css"
 
 axios.defaults.baseURL = "https://reqres.in/api";
 const userToken = store.getters.isError
@@ -31,4 +34,4 @@ axios.interceptors.response.use(
   }
 );
 
-createApp(App).use(store).use(router).mount("#app");
+createApp(App).use(store).use(router).use(VueSweetalert2).mount("#app");

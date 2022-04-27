@@ -1,5 +1,5 @@
 <template>
-  <table class="table tablesorter" :class="tableClass">
+  <table class="table table-dark" :class="tableClass">
     <thead :class="theadClasses">
       <tr>
         <slot name="columns" :columns="columns">

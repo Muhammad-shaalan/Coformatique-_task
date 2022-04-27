@@ -1,17 +1,17 @@
 <template>
-  <div class="home">
-    <div class="bg-success text-white" v-if="successMessage">
-      {{ successMessage }}
-    </div>
-    <div class="bg-danger text-white" v-if="errorMessage">
-      {{ errorMessage }}
-    </div>
+  <div class="home text-start">
+    <button
+      type="button"
+      class="btn btn-success mb-4"
+      @click="createModal = true"
+    >
+      New User
+    </button>
     <div class="table-responsive">
       <base-table class="table align-items-center table-flush" :data="items">
         <!-- Table Head -->
         <template v-slot:columns>
           <th>#</th>
-          <th>Image</th>
           <th>Email</th>
           <th>First Name</th>
           <th>Last Name</th>
@@ -22,9 +22,6 @@
         <template v-slot:default="row">
           <td class="budget">
             {{ row.item.id }}
-          </td>
-          <td class="budget">
-            <img :alt="row.item.name + 'Image'" :src="row.item.avatar" />
           </td>
           <td class="budget">
             {{ row.item.email }}
@@ -39,8 +36,6 @@
             <button
               type="button"
               class="btn btn-primary me-2"
-              data-bs-toggle="modal"
-              data-bs-target="#editModal"
               @click="editUser(row.item)"
             >
               Edit
@@ -63,7 +58,72 @@
         v-on:pagination-num="page = $event"
       />
     </div>
-    <!-- Modal -->
+
+    <!-- Create Modal -->
+    <div
+      v-if="createModal"
+      class="modal fade show d-block"
+      id="createModal"
+      tabindex="-1"
+      aria-labelledby="createModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="createModalLabel">New User</h5>
+            <button
+              type="button"
+              class="btn-close"
+              @click="createModal = false"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="row">
+                <div class="col-lg-6 mb-3">
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="First Name"
+                    v-model="newUser.first_name"
+                  />
+                </div>
+                <div class="col-lg-6 mb-3">
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Last Name"
+                    v-model="newUser.last_name"
+                  />
+                </div>
+                <div class="col-lg-6 mb-3">
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Email"
+                    v-model="newUser.email"
+                  />
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="createModal = false"
+            >
+              Close
+            </button>
+            <button type="button" class="btn btn-success" @click="createUser()">
+              Save changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Edit Modal -->
     <div
       v-if="editModal"
       class="modal fade show d-block"
@@ -75,7 +135,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="editModalLabel">Modal title</h5>
+            <h5 class="modal-title" id="editModalLabel">Edit User</h5>
             <button
               type="button"
               class="btn-close"
@@ -120,7 +180,7 @@
         </div>
       </div>
     </div>
-    <!-- Modal -->
+    <!-- Delete Modal -->
     <div
       v-if="deleteModal"
       class="modal fade show d-block"
@@ -141,16 +201,11 @@
             ></button>
           </div>
           <div class="modal-body">
-            هل انت متأكد من حذف {{ userDetails.first_name }}-
-            {{ userDetails.last_name }} ؟
+            Are you sure to delete {{ userDetails.first_name }}-
+            {{ userDetails.last_name }} ?
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-danger"
-              data-bs-dismiss="modal"
-              @click="deleteUser(userDetails)"
-            >
+            <button type="button" @click="deleteUser(userDetails)">
               Delete
             </button>
           </div>
@@ -177,11 +232,10 @@ export default {
     return {
       loading: false,
       // Modals
+      createModal: false,
       editModal: false,
       deleteModal: false,
-      // Messages
-      successMessage: false,
-      errorMessage: false,
+      newUser: { first_name: "", last_name: "", email: "" },
       userDetails: {},
       first_name: "",
       last_name: "",
@@ -201,6 +255,50 @@ export default {
     },
   },
   methods: {
+    validation: function () {
+      if (
+        this.newUser.first_name &&
+        this.newUser.last_name &&
+        this.newUser.email
+      ) {
+        return true;
+      } else {
+        return false
+      }
+    },
+    // Create User
+    async createUser() {
+      if (this.validation) {
+        const formData = this.newUser;
+        const createUser = await UsersService.createUser(formData);
+        if (createUser) {
+          this.newUser = {};
+          this.items.unshift(createUser);
+          this.$swal({
+            position: "center",
+            icon: "success",
+            title: "Created Successfully",
+          });
+          setTimeout(() => {
+            this.createModal = false;
+          }, 200);
+        } else {
+          this.$swal({
+            position: "center",
+            icon: "error",
+            title: "Error",
+          });
+        }
+      } else {
+        this.$swal({
+          position: "center",
+          icon: "error",
+          title: "Please Fill All Fields",
+        });
+      }
+    },
+
+    // Update User
     editUser(userData) {
       this.editModal = true;
       this.userDetails = userData;
@@ -209,43 +307,60 @@ export default {
       this.email = userData.email;
     },
     async updateUser() {
-      const formData = {
-        first_name: this.userDetails.first_name,
-        last_name: this.userDetails.last_name,
-        email: this.userDetails.email,
-      };
-      const updateUsers = await UsersService.updataUser(
-        this.userDetails.id,
-        formData
-      );
-      if (updateUsers) {
-        this.items.filter((item) => {
-          if (this.userDetails.id === item.id) {
-            item.first_name = this.first_name;
-            item.last_name = this.last_name;
-            item.email = this.email;
-          }
-        });
-        this.successMessage = "Updated Successfully";
-        setTimeout(() => {
-          this.editModal = false;
-        }, 300);
-        setTimeout(() => {
-          this.successMessage = false;
-        }, 3000);
+      if (this.first_name && this.last_name && this.email) {
+        const formData = {
+          first_name: this.first_name,
+          last_name: this.last_name,
+          email: this.email,
+        };
+        const updateUsers = await UsersService.updataUser(
+          this.userDetails.id,
+          formData
+        );
+        if (updateUsers) {
+          this.items.filter((item) => {
+            if (this.userDetails.id === item.id) {
+              item.first_name = this.first_name;
+              item.last_name = this.last_name;
+              item.email = this.email;
+            }
+          });
+          this.$swal({
+            position: "center",
+            icon: "success",
+            title: "Updated Successfully",
+          });
+          setTimeout(() => {
+            this.editModal = false;
+          }, 300);
+        } else {
+          this.$swal({
+            position: "center",
+            icon: "error",
+            title: "Server Error",
+          });
+        }
       } else {
-        this.errorMessage("Error");
-        setTimeout(() => {
-          this.errorMessage = false;
-        }, 3000);
+        this.first_name = this.userDetails.first_name;
+        this.last_name = this.userDetails.last_name;
+        this.email = this.userDetails.email;
+        this.$swal({
+          position: "center",
+          icon: "error",
+          title: "Please Fill All Fields",
+        });
       }
     },
+
+    // Get All Users
     async fetchAllItems() {
       const items = await UsersService.getAllItems(this.page);
       this.items = items.data;
       this.page = items.page;
       this.total_pages = items.total_pages;
     },
+
+    // Delete User
     confirmDeleteUser(userData) {
       this.deleteModal = true;
       this.userDetails = userData;
@@ -253,19 +368,21 @@ export default {
     async deleteUser(userDetails) {
       const deleteUsers = await UsersService.deleteUser(userDetails.id);
       if (deleteUsers) {
-        this.successMessage = "Deleted Successfully";
+        this.$swal({
+          position: "center",
+          icon: "success",
+          title: "Deleted Successfully",
+        });
         this.deleteModal = false;
         setTimeout(() => {
           this.items.splice(this.items.indexOf(userDetails), 1);
         }, 600);
-        setTimeout(() => {
-          this.successMessage = false;
-        }, 3000);
       } else {
-        this.errorMessage("Error");
-        setTimeout(() => {
-          this.errorMessage = false;
-        }, 3000);
+        this.$swal({
+          position: "center",
+          icon: "error",
+          title: "Error",
+        });
       }
     },
   },
